@@ -1,0 +1,1149 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <title>睡在我枕边的怪物 · 佑介</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: #2b2b2b;
+      font-family: 'Noto Serif SC', 'Times New Roman', '宋体', '仿宋', Georgia, serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 12px;
+      background: #3a3a3a;
+    }
+    .game-container {
+      position: relative;
+      width: 100%;
+      max-width: 500px;
+      height: 85vh;
+      max-height: 750px;
+      background: #d6d6d6;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      border-radius: 18px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background: #dcdcdc;
+    }
+    .story-view {
+      flex: 1;
+      background: #cfcfcf;
+      overflow-y: auto;
+      padding: 20px 18px;
+      position: relative;
+      scroll-behavior: smooth;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #d9d9d9;
+      color: #1e1e1e;
+      font-weight: 400;
+      letter-spacing: 0.3px;
+      line-height: 1.7;
+      scrollbar-width: thin;
+      scrollbar-color: #9e9e9e #cfcfcf;
+    }
+    .story-view::-webkit-scrollbar {
+      width: 4px;
+    }
+    .story-view::-webkit-scrollbar-track {
+      background: #cfcfcf;
+    }
+    .story-view::-webkit-scrollbar-thumb {
+      background: #7a7a7a;
+      border-radius: 8px;
+    }
+    .content-block {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      text-align: left;
+      position: relative;
+    }
+
+    .title-fade {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 1.4rem;
+      font-weight: 500;
+      letter-spacing: 3px;
+      color: #1a1a1a;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 1.2s ease;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .paragraph {
+      width: 100%;
+      margin: 10px 0;
+      font-size: 1rem;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      color: #222;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .paragraph.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .paragraph.blood-red {
+      color: #6b1a1a;
+      font-weight: 450;
+    }
+    .choice-area {
+      margin: 20px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+    }
+    .choice-btn {
+      background: #b9b9b9;
+      border: 1px solid #6f6f6f;
+      color: #1e1e1e;
+      padding: 14px 16px;
+      border-radius: 40px;
+      font-size: 1rem;
+      font-weight: 450;
+      background: #c8c8c8;
+      transition: 0.2s;
+      text-align: left;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .choice-btn:active {
+      background: #a0a0a0;
+      transform: scale(0.98);
+    }
+    .click-timer-circle {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: #bcbcbc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 15px auto;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #2c2c2c;
+      border: 2px solid #5e5e5e;
+      cursor: pointer;
+      user-select: none;
+      transition: 0.1s;
+    }
+    .timer-text {
+      font-size: 0.9rem;
+      margin-top: 2px;
+    }
+    .shake-text {
+      display: inline-block;
+      animation: shiver 0.2s infinite;
+    }
+    @keyframes shiver {
+      0% {
+        transform: translate(1px, 1px);
+      }
+      25% {
+        transform: translate(-1px, -2px);
+      }
+      50% {
+        transform: translate(-2px, 1px);
+      }
+      75% {
+        transform: translate(2px, -1px);
+      }
+      100% {
+        transform: translate(1px, 1px);
+      }
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(20, 20, 20, 0.7);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: #d7d7d7;
+      width: 82%;
+      max-width: 420px;
+      border-radius: 32px;
+      padding: 28px 20px;
+      text-align: center;
+      color: #1f1f1f;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #4a4a4a;
+      line-height: 1;
+    }
+    .hidden {
+      display: none !important;
+    }
+    .next-chapter {
+      margin: 25px 0 10px;
+      font-style: italic;
+      color: #4a4a4a;
+      text-decoration: underline;
+      cursor: pointer;
+      text-align: center;
+    }
+    .special-link {
+      font-weight: 600;
+      color: #2b2b2b;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .chat-screen {
+      display: flex;
+      flex-direction: column;
+      height: 400px;
+      width: 100%;
+      background: #1c1c1e;
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+    .chat-header {
+      padding: 0.8rem 1rem;
+      background: #2c2c2e;
+      border-bottom: 1px solid #3a3a3c;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #f0f0f0;
+      background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23f5f5f5"/><polygon points="30,35 25,50 35,45 40,55 45,40 55,45 50,30 45,25 35,30" fill="%23222222"/><circle cx="45" cy="40" r="3" fill="%23444444"/></svg>');
+      background-size: cover;
+      filter: blur(0.5px);
+      box-shadow: 0 0 0 2px rgba(180, 180, 180, 0.5);
+    }
+    .contact-name {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: #e5e5e7;
+    }
+    .messages-container {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      background: #1c1c1e;
+      position: relative;
+    }
+    .messages-container .bg-text {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      color: #8b1a1a;
+      opacity: 0.25;
+      font-size: 0.75rem;
+      word-break: break-all;
+      text-align: center;
+      pointer-events: none;
+      display: flex;
+      flex-wrap: wrap;
+      align-content: center;
+      justify-content: center;
+      padding: 15px;
+      z-index: 0;
+      line-height: 1.4;
+      font-weight: 500;
+    }
+    .message-bubble {
+      max-width: 75%;
+      padding: 0.7rem 1rem;
+      border-radius: 18px;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      word-break: break-word;
+      color: #f0f0f2;
+      position: relative;
+      z-index: 1;
+    }
+    .message-received {
+      background: #2c2c2e;
+      border-bottom-left-radius: 6px;
+      color: #e5e5e7;
+      align-self: flex-start;
+    }
+    .message-sent {
+      background: #4a4a4d;
+      border-bottom-right-radius: 6px;
+      align-self: flex-end;
+      color: #ffffff;
+      background: #505055;
+    }
+    .message-date {
+      text-align: center;
+      color: #8e8e93;
+      font-size: 0.7rem;
+      margin: 8px 0;
+      position: relative;
+      z-index: 1;
+    }
+    .input-area {
+      padding: 0.6rem 0.8rem;
+      background: #2c2c2e;
+      border-top: 1px solid #3a3a3c;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .message-input {
+      flex: 1;
+      background: #3a3a3c;
+      border: none;
+      border-radius: 20px;
+      padding: 0.6rem 1rem;
+      font-size: 0.9rem;
+      color: #f0f0f2;
+      outline: none;
+      font-family: inherit;
+    }
+    .send-button {
+      background: #5e5e64;
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #e5e5e7;
+      font-size: 1rem;
+    }
+    .age-modal-card {
+      background: #e8e5df;
+      width: 360px;
+      min-height: 380px;
+      border-radius: 24px;
+      padding: 40px 32px;
+      text-align: center;
+      color: #2b2b2b;
+      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      border: 1px solid #c5bfb3;
+      position: relative;
+    }
+    .age-modal-card::before {
+      content: '';
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 48px;
+      height: 4px;
+      background: #bfb8a8;
+      border-radius: 2px;
+    }
+    .ending-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #e8e5df;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      transition: opacity 2s ease;
+    }
+    .warning-center-text {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 20;
+      opacity: 0;
+      transition: opacity 2s ease;
+      pointer-events: none;
+      width: 85%;
+      max-width: 400px;
+    }
+    .analysis-modal {
+      background: #d7d7d7;
+      width: 90%;
+      max-width: 500px;
+      max-height: 80vh;
+      border-radius: 24px;
+      padding: 24px 20px;
+      text-align: left;
+      color: #1f1f1f;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      position: relative;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container" id="gameContainer">
+    <div class="story-view" id="storyView">
+      <div class="content-block" id="contentBlock"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="ageModal">
+    <div class="age-modal-card">
+      <div style="font-size: 0.8rem; color: #8b7355; letter-spacing: 1px; margin-bottom: 24px; line-height: 1.6;">存在血腥色情内容<br>请你确保已年满18岁再继续游玩</div>
+      <div style="font-size: 2rem; font-weight: 400; letter-spacing: 3px; margin-bottom: 28px; color: #2b2b2b; white-space: nowrap;">睡在我枕边的怪物</div>
+      <div style="font-size: 0.85rem; color: #6b6b6b; margin-bottom: 36px;">佑介</div>
+      <div style="font-size: 1rem; letter-spacing: 4px; cursor: pointer; font-weight: 500; color: #2b2b2b; border-bottom: 1px solid #b0a697; padding-bottom: 4px;" id="startGameBtn">开始游戏</div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="theseusModal">
+    <div class="modal-content" style="text-align: left; max-height: 80vh; overflow-y: auto;">
+      <span class="modal-close" id="closeTheseus">✕</span>
+      <div style="font-weight: 600; font-size: 1.3rem; margin-bottom: 14px; color: #1a1a1a;">忒休斯与黑帆</div>
+      <p style="font-size:0.9rem; line-height:1.7;">忒修斯是雅典国王埃勾斯的儿子。准备进入迷宫杀死牛头怪弥诺陶洛斯。出发前，埃勾斯国王与忒修斯立下了一个关乎生死的约定。当时雅典派往克里特的船是一艘黑色帆船，象征哀悼与死亡。埃勾斯对儿子说："如果你活着回来，就把船上的黑帆换成白帆；如果你不幸战死，船就继续挂着黑帆回来。"忒修斯在克里特岛成功杀死了牛头怪，返航途中，他心情激动，却忘记了一个致命的细节——他没有把黑帆换成白帆。老国王埃勾斯日复一日站在雅典海边的悬崖上眺望。当他远远看到归来的船挂着的仍是黑帆时，误以为儿子已死。万念俱灰之下，埃勾斯纵身跳入大海，溺水而亡。这片海从此被称为爱琴海。</p>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="analysisModal">
+    <div class="analysis-modal">
+      <span class="modal-close" id="closeAnalysis">✕</span>
+      <div style="font-weight: 600; font-size: 1.2rem; margin-bottom: 16px; color: #1a1a1a;">查看解析</div>
+      <p style="font-size:0.85rem; line-height:1.8; white-space: pre-wrap;">technoblade患病为前提。
+
+卡普格拉综合征：患者认为生活中某个亲近的人（通常是父母、配偶或子女）已被替换，眼前的亲人其实是他人伪装的，甚至每次都是不同的人，只是都长得一模一样。于是下文出现了两个Dream：一个真实的Dream，一个由technoblade臆想出的"怪物Dream"。
+
+Dream很敏感地察觉到了technoblade的变化。technoblade为了保持清醒，开始服用副作用极大的药物。某天Dream回家后，发现与自己发色相近的Tommy被犯病的technoblade当成"怪物Dream"，用棒球棍打成了浣熊酱。Dream默默看着神志不清的technoblade将尸体潦草地拖进后院，而technoblade却把Dream当成了Tommy。Dream将计就计，说自己要去晨跑帮technoblade制造"Dream还活着"的假象，趁机挖出Tommy的尸体，离开一段时间去善后。几周后他再次返回，Tommy就这样在technoblade不知情的情况下被宰杀。由于Tommy当晚没有告知任何人自己的去向，所以无人能追查到他的行踪。
+
+回来的Dream知道technoblade仍在生病。时间一久，philza从Tommy的房间和wilbur的对证中渐渐发现，Tommy最后一晚其实是偷偷去了大哥家中，于是开始怀疑Dream失踪的动机不明。Dream将计就计，在前一晚给technoblade服下药物，使他产生幻觉，将Dream当成怪物一路追杀。Dream轻车熟路地将technoblade引到phil身后躲藏起来。药效发作的technoblade将phil也当成了怪物Dream杀死。technoblade陷入混乱——他已经杀死了怪物Dream两次，可Dream每天仍毫发无损地出现，和他亲近。technoblade开始怀疑自己是否杀错了人，于是检查了Dream的身体，却发现每次致命伤都在Dream身上留下了痕迹，这说明Dream是一个不死的怪物。technoblade绝望地妥协了。
+
+然而在风波平息后的最后一次亲热中，Dream不想再装了。他顺着technoblade的手撕开由假皮伪装的伤口，证明technoblade那几次杀的根本不是他。technoblade在惊骇和精神冲击中，回忆起了phil和Tommy死前的惨状。同时，他和Dream一起高潮，紧紧交融在一起。</p>
+    </div>
+  </div>
+
+  <div class="warning-center-text" id="warningOverlay">
+    <div style="font-size: 0.8rem; color: #333; letter-spacing: 0.5px; margin-bottom: 16px; opacity: 0; transition: opacity 2s ease; line-height: 1.5;" id="warningLine1">#科技梦，存在NSFW情节。</div>
+    <div style="font-size: 0.8rem; color: #333; letter-spacing: 0.5px; margin-bottom: 16px; opacity: 0; transition: opacity 2s ease; line-height: 1.5;" id="warningLine2">#SBI有提及，纯sbi粉丝慎重游玩</div>
+    <div style="font-size: 0.8rem; color: #333; letter-spacing: 0.5px; margin-bottom: 16px; opacity: 0; transition: opacity 2s ease; line-height: 1.5;" id="warningLine3">#存在重要角色死亡环节</div>
+    <div style="font-size: 0.8rem; color: #333; letter-spacing: 0.5px; margin-bottom: 28px; opacity: 0; transition: opacity 2s ease; line-height: 1.5;" id="warningLine4">#如若继续游玩，表明你已成年且愿意承担风险</div>
+    <div style="font-size: 0.85rem; color: #5a5a5a; letter-spacing: 2px; cursor: pointer; opacity: 0; transition: opacity 2s ease;" id="continueBtn">继续游玩</div>
+  </div>
+
+  <script>
+    (function() {
+      const storyView = document.getElementById('storyView');
+      const contentBlock = document.getElementById('contentBlock');
+      const ageModal = document.getElementById('ageModal');
+      const theseusModal = document.getElementById('theseusModal');
+      const analysisModal = document.getElementById('analysisModal');
+      const warningOverlay = document.getElementById('warningOverlay');
+
+      function clearContent() {
+        contentBlock.innerHTML = '';
+      }
+
+      async function showTitle(text, duration = 3000) {
+        return new Promise(resolve => {
+          const titleDiv = document.createElement('div');
+          titleDiv.className = 'title-fade';
+          titleDiv.innerText = text;
+          document.body.appendChild(titleDiv);
+          requestAnimationFrame(() => {
+            titleDiv.style.opacity = '1';
+          });
+          setTimeout(() => {
+            titleDiv.style.opacity = '0';
+            setTimeout(() => {
+              if (titleDiv.parentNode) titleDiv.remove();
+              resolve();
+            }, 1200);
+          }, duration);
+        });
+      }
+
+      async function displayParagraphs(paragraphsArray, delayMs = 1800) {
+        for (let item of paragraphsArray) {
+          await new Promise(resolve => {
+            const p = document.createElement('div');
+            p.className = 'paragraph';
+            if (typeof item === 'object') {
+              p.innerText = item.text;
+              if (item.class) {
+                p.classList.add(item.class);
+              }
+            } else {
+              p.innerText = item;
+            }
+            contentBlock.appendChild(p);
+            let resolved = false;
+            const showParagraph = () => {
+              if (!resolved) {
+                resolved = true;
+                p.classList.add('visible');
+                setTimeout(resolve, 200);
+              }
+            };
+            p.addEventListener('click', showParagraph);
+            setTimeout(showParagraph, delayMs);
+          });
+        }
+      }
+
+      function renderChoices(choices) {
+        const choiceDiv = document.createElement('div');
+        choiceDiv.className = 'choice-area';
+        choices.forEach((choice, idx) => {
+          const btn = document.createElement('div');
+          btn.className = 'choice-btn';
+          btn.innerText = (idx + 1) + '. ' + choice.label;
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('.choice-btn').forEach(b => b.style.pointerEvents = 'none');
+            choice.action();
+          });
+          choiceDiv.appendChild(btn);
+        });
+        contentBlock.appendChild(choiceDiv);
+        storyView.scrollTop = storyView.scrollHeight;
+      }
+
+      function renderClickCircle(targetClicks, successCallback, failCallback) {
+        return new Promise(resolve => {
+          let clicks = 0;
+          let timeLeft = 10;
+          const circle = document.createElement('div');
+          circle.className = 'click-timer-circle';
+          circle.innerHTML = '<span>' + clicks + '/' + targetClicks + '</span><span class="timer-text">' + timeLeft +
+            's</span>';
+          contentBlock.appendChild(circle);
+          storyView.scrollTop = storyView.scrollHeight;
+
+          let timerStarted = false;
+          let interval = null;
+
+          const startTimer = () => {
+            if (timerStarted) return;
+            timerStarted = true;
+            interval = setInterval(() => {
+              timeLeft--;
+              circle.querySelector('.timer-text').innerText = timeLeft + 's';
+              if (timeLeft <= 0) {
+                clearInterval(interval);
+                circle.style.pointerEvents = 'none';
+                if (clicks < targetClicks) {
+                  failCallback();
+                }
+                resolve();
+              }
+            }, 1000);
+          };
+
+          circle.addEventListener('click', () => {
+            startTimer();
+            clicks++;
+            circle.querySelector('span:first-child').innerText = clicks + '/' + targetClicks;
+            if (clicks >= targetClicks) {
+              clearInterval(interval);
+              circle.style.pointerEvents = 'none';
+              successCallback();
+              resolve();
+            }
+          });
+        });
+      }
+
+      function renderSMSInterface() {
+        return new Promise(resolve => {
+          clearContent();
+
+          const chatScreen = document.createElement('div');
+          chatScreen.className = 'chat-screen';
+
+          const header = document.createElement('div');
+          header.className = 'chat-header';
+          header.innerHTML = '<div class="avatar"></div><div class="contact-name">Phil</div>';
+          chatScreen.appendChild(header);
+
+          const messagesContainer = document.createElement('div');
+          messagesContainer.className = 'messages-container';
+
+          const bgText = document.createElement('div');
+          bgText.className = 'bg-text';
+          bgText.innerText = '谁知道Dream是不是一个诱拐犯，就是他带着Tommy一起失踪了。'.repeat(20);
+          messagesContainer.appendChild(bgText);
+
+          const dateDiv1 = document.createElement('div');
+          dateDiv1.className = 'message-date';
+          dateDiv1.innerText = '4月20日';
+          messagesContainer.appendChild(dateDiv1);
+
+          const msgs = [
+            '说实在的，我并不是很看好你和Dream的这段关系。',
+            '他自大又自私，唯利是图，只考虑自己，甚至爱你都是出于他的爱己。',
+            '但是无论如何，或许是我想茬了，不用邀请我好吗，techno。'
+          ];
+          msgs.forEach(text => {
+            const msg = document.createElement('div');
+            msg.className = 'message-bubble message-received';
+            msg.innerText = text;
+            messagesContainer.appendChild(msg);
+          });
+
+          const dateDiv2 = document.createElement('div');
+          dateDiv2.className = 'message-date';
+          dateDiv2.innerText = '7月11日';
+          messagesContainer.appendChild(dateDiv2);
+
+          chatScreen.appendChild(messagesContainer);
+
+          const inputArea = document.createElement('div');
+          inputArea.className = 'input-area';
+          const input = document.createElement('input');
+          input.className = 'message-input';
+          input.placeholder = '输入消息...';
+          input.value = 'Phil，警方那里有关于Tommy的消息吗？';
+          inputArea.appendChild(input);
+
+          const sendBtn = document.createElement('button');
+          sendBtn.className = 'send-button';
+          sendBtn.innerText = '↑';
+          inputArea.appendChild(sendBtn);
+
+          chatScreen.appendChild(inputArea);
+          contentBlock.appendChild(chatScreen);
+          storyView.scrollTop = storyView.scrollHeight;
+
+          let sendCount = 0;
+
+          const handleSend = async () => {
+            if (sendCount >= 2) return;
+            if (input.value.trim() === '') return;
+            sendBtn.style.pointerEvents = 'none';
+            input.disabled = true;
+
+            const sentMsg = document.createElement('div');
+            sentMsg.className = 'message-bubble message-sent';
+            sentMsg.innerText = input.value;
+            messagesContainer.appendChild(sentMsg);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            input.value = '';
+
+            if (sendCount === 0) {
+              await new Promise(r => setTimeout(r, 800));
+
+              const replies = [
+                '没有，一切都很乱。',
+                '我还很担心Wilbur,我几乎快联系不上他了。',
+                '关于Dream的事，我很抱歉知道。你应该会是我们当中最难受的那个。'
+              ];
+
+              for (let reply of replies) {
+                await new Promise(r => setTimeout(r, 1200));
+                const msg = document.createElement('div');
+                msg.className = 'message-bubble message-received';
+                msg.innerText = reply;
+                messagesContainer.appendChild(msg);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+              }
+
+              input.disabled = false;
+              input.value = '';
+              input.placeholder = '输入你的回复...';
+              sendBtn.style.pointerEvents = 'auto';
+              sendCount++;
+            } else if (sendCount === 1) {
+              messagesContainer.scrollTop = messagesContainer.scrollHeight;
+              sendCount++;
+              setTimeout(() => {
+                addNextChapterLink('结束聊天', runSecondMurder);
+                resolve();
+              }, 500);
+            }
+          };
+
+          sendBtn.addEventListener('click', handleSend);
+          input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+              handleSend();
+            }
+          });
+        });
+      }
+
+      async function runSecondMurder() {
+        clearContent();
+        await showTitle('▸ 第二次谋杀 · 时间回到现在', 3000);
+        await displayParagraphs([
+          "你猛然从夜半惊醒。",
+          "你刚刚又梦到了Dream一个月前失踪的事情。甚至还梦见了和家人传简讯。你翻过身，打算去再一次抚摸确认Dream后脑勺上的伤疤时——",
+          "却发现对方不知何时早已醒来。侧身目不转睛地望着你。"
+        ], 1800);
+
+        renderChoices([
+          { label: '迎上他的目光，主动触碰他的脸，与他接吻。', action: () => option1SecondMurder() },
+          { label: '别开视线，假装只是翻身。', action: () => option2SecondMurder() }
+        ]);
+      }
+
+      async function option1SecondMurder() {
+        clearContent();
+        await displayParagraphs([
+          "Dream不知何时他已经轻车熟路把你的内裤脱落了下来到腿弯，紧接着翻身骑了上来，你爱看他跨两侧细密的浅淡雀斑。"
+        ], 2000);
+        addNextChapterLink('继续', runSexScene);
+      }
+
+      async function option2SecondMurder() {
+        clearContent();
+        await displayParagraphs([
+          "Dream从背后环抱住了你，半胁迫压着扯掉了你的内裤，紧接着翻身骑了上来。"
+        ], 2000);
+        addNextChapterLink('继续', runSexScene);
+      }
+
+      async function runSexScene() {
+        clearContent();
+        await displayParagraphs([
+          "▸ 一场算不上温情的性爱",
+          "这是一种很奇怪的感觉。你摩挲着Dream，但又在心里寡淡地否认着Dream。对方似乎并没有察觉一般耽于情欲，颊上的雀斑染上了一层粉蜜色，伸舌舔舐过你的眼睑。舌头压得你有些疼。",
+          "你掐住他的腰，狠狠将自己顶了进去。Dream餍足地呼噜着，双手掐着你的肩膀晃腰，腰部的肌肉有力地鼓动。",
+          "在疯狂性事的间隙，你的手机叮叮当当响了起来。你伸手去够，但Dream快你一步滑开了手机——用指纹解锁了。你上下抚摸着Dream仍在起伏吸纳的腰。Dream点开手机滑了一下——上面是来自Wilbur Soot的短信。他熄屏丢到了一边。你再次伸手试图去拿时，被Dream握住了手——濡汗的双手十指相扣。Dream俯趴在你身上，拍拍你的腿示意换他来动。",
+          "你在迷糊间想——",
+          "Dream难道是一个不死的怪物？每晚重复着被你用各种方法虐杀死亡后，又从尸体间肢解组好，爬回到你的床上和你亲热、性交。每天早上依旧穿着他的那件卫衣等在你床前。"
+        ], 1800);
+
+        addNextChapterLink('进入第四章', runChapter4);
+      }
+
+      async function runChapter4() {
+        clearContent();
+        await showTitle('第四章 · 融解', 3000);
+        await displayParagraphs([
+          "你再次伸手去抚摸Dream胸腔上的疤痕。",
+          "Dream在你的身上露出了一个诡异的笑容。",
+          "然后他撕掉了那一层假皮——下面是一副完好无瑕的皮肤。",
+          "Dream骤然绞紧。你咬牙低头顶弄对峙着，Dream发出一阵阵喘不上气的笑声。",
+          "对啊，Dream的腰应该是这样的。不会太瘪平如青少年。Dream的头发是这样的，无论如何都不会变成耀眼的纯金。",
+          "你的瞳孔紧缩。",
+          "一些被大脑刻意掩盖覆灭的记忆又血淋淋地被连皮带肉撕扯出来——",
+          "你想起了Phil的眼球渐渐变得和死鱼一样充血。想起了Tommy是如何尖叫着躲避你的棒球棍，到奄奄一息吐不出脏字。",
+          "Dream低头阖目抽气着，细细密密地吻在你的颊上。交合处泥泞一片，随着胯骨相碰和水渍声，亲密地交融为一体。Dream伸手撸动前端，居高临下看着你呼吸粗重地耽缅于激烈的性交。",
+          "然后Dream说：",
+          "\"你真应该听医生的话多吃点药的，Techno。你应该懂——什么都不知道，会更开心点。\"",
+          "你惊骇地双手痉挛掐紧了Dream的腰肢，颤抖着将炽热一股埋进了他的体内。Dream餍足地拉长尾音\"哦\"着，满足地半趴在男人身上，啃住了你的嘴唇。"
+        ], 1800);
+
+        const choiceDiv = document.createElement('div');
+        choiceDiv.className = 'choice-area';
+        const texts = [];
+        for (let i = 0; i < 12; i++) {
+          texts.push('在这个吻里彻底接受一切');
+        }
+        texts.push('在 这 个 吻 里 彻 底 接 受 一 切  。');
+
+        texts.forEach((text) => {
+          const btn = document.createElement('div');
+          btn.className = 'choice-btn';
+          btn.innerText = text;
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('.choice-btn').forEach(b => b.style.pointerEvents = 'none');
+            runEnding();
+          });
+          choiceDiv.appendChild(btn);
+        });
+        contentBlock.appendChild(choiceDiv);
+        storyView.scrollTop = storyView.scrollHeight;
+      }
+
+      async function runEnding() {
+        clearContent();
+        await displayParagraphs([
+          "你不再挣扎了。",
+          "Dream的舌头撬开你的齿关，湿漉漉的双唇相撞贪婪地汲取对方的唾液。你闭上眼，任由他吞咽你的呼吸。他的手抚过你后颈那道从未消退的淤青——那是第一次你昏倒在樱桃树下时留下的。",
+          "你想起很多事。",
+          "想起Tommy的卫衣上那个黄色的笑脸，在棒球棍砸落之前，它被你的影子遮住了。想起Phil的眼球从湛蓝变成死灰，像两枚被海水泡烂的玻璃珠。想起每一次\"怪物Dream\"的尸体消失后，次日清晨你的枕边总会多出一缕纯金色的短发。",
+          "你想起Dream离家那二十多天，他一定很忙。",
+          "头发，牙齿，指甲。",
+          "在你每一次举起撬棍时，他或许都在后面安静地看着你谋杀血亲。",
+          "\"你说得对。\" 你在吻的间隙含糊地开口，嗓音沙哑得像吞了碎玻璃。 \"我该吃药。\"",
+          "Dream笑了。他的笑声从你们交合的缝隙里溢出来，贴着你的皮肤往骨头里钻。",
+          "\"现在吃也不晚。\"",
+          "他伸手从枕头底下摸出一板药片。他扣出一粒，用舌尖抵着送进你嘴里。你咽了下去。",
+          "视野开始融化。Dream的脸变得模糊，他暧昧不明的笑让你想要触摸，他把颊贴近你的手心。",
+          "\"睡吧，Techno。明天早上你还是会醒来的。\"",
+          "你闭上眼。",
+          "耳边是铲子挖土的声音，是斧头剁柴墩的声音。是你自己呼吸的声音。",
+          "我们两人的坟墓已由你亲手掘好。"
+        ], 2000);
+
+        await new Promise(r => setTimeout(r, 1000));
+
+        const endingOverlay = document.createElement('div');
+        endingOverlay.className = 'ending-overlay';
+        endingOverlay.innerHTML = `
+          <div style="font-size: 2.2rem; font-weight: 500; letter-spacing: 6px; color: #8b7355; margin-bottom: 12px; opacity: 0; transition: opacity 2s ease;" id="endingTitle">多情的暴雨</div>
+          <div style="font-size: 0.9rem; color: #5a5a5a; letter-spacing: 2px; opacity: 0; transition: opacity 2s ease 1s;" id="endingSub">游戏结束，达成结局</div>
+          <div style="font-size: 0.85rem; color: #4a4a4a; letter-spacing: 1px; cursor: pointer; margin-top: 24px; opacity: 0; transition: opacity 2s ease 2s; text-decoration: underline;" id="viewAnalysis">查看解析</div>
+        `;
+        document.body.appendChild(endingOverlay);
+
+        requestAnimationFrame(() => {
+          endingOverlay.style.opacity = '1';
+          setTimeout(() => {
+            document.getElementById('endingTitle').style.opacity = '1';
+          }, 500);
+          setTimeout(() => {
+            document.getElementById('endingSub').style.opacity = '1';
+          }, 1500);
+          setTimeout(() => {
+            document.getElementById('viewAnalysis').style.opacity = '1';
+            document.getElementById('viewAnalysis').addEventListener('click', () => {
+              analysisModal.classList.remove('hidden');
+            });
+          }, 2500);
+        });
+      }
+
+      async function runPrologue() {
+        clearContent();
+        await showTitle('序章 · 男友', 3000);
+        await displayParagraphs([
+          "Dream失踪了。",
+          "非常平静的一天。Dream一如既往在出门前吃了煎蛋，不修边幅地套上卫衣，用胡渣刺了刺你的脸颊，出门夜跑，就再也没有回来。",
+          "你报了警，牵着Floof去了Dream常去的小道，呼喊他的名字，搜遍了草丛和树林，希望能找到只是崴了脚的他，或者一点残存的痕迹。但一无所获，毕竟Floof还只是小狗。",
+          "这件事在这个治安很好的漂亮街区掀起了轩然大波。警方成立了搜查小队，居民们也自发组成队伍寻找。你不擅长应对这种情况，只好写了一封信贴在公示栏上，对每一位同情你境遇的邻居表示感谢。",
+          "二十多天过去了，无论是屋内屋外如何搜查，还是没有一点Dream的踪迹。没有人能说出他到底去了哪。你没有把消息告诉他的家人，因为Tommy的骤然失踪已经让Phil无力承担更多。你也向警方汇报了Tommy的情况，但遗憾的是，两件案子的关联性并不大。",
+          "Wilbur告诉你，他们没有什么可以瞒过Phil。几周后，印满Dream照片的寻人启事被其他传单覆盖，警方的消息越来越少。",
+          "就在你准备接受现实，开始思考Dream究竟是被连环杀手做成了纪念品，还是更糟的情况——被抓去演了天线宝宝的时候——",
+          "一个傍晚，Dream回家了。",
+          "他站在花园外，和往常一样半倚着栅栏，和你打了招呼，拎着一袋新鲜的蔬菜。金棕色的乱发，浅色的雀斑，薄薄的嘴唇挑出微笑的弧度。仿佛失踪这件事并不存在。他只是下班回家了。他和失踪那天一模一样，穿着那件心爱的卫衣。",
+          "当你略带焦躁地询问他到底去了哪时，他低下头，让你看到了他后脑上的伤口。他说他对失踪的几星期毫无印象。你伸手摸了摸那个伤口，看起来已经有段时间了。",
+          "一切看起来都是那么幸运且巧合。Dream完好无损地回到了家。邻居和家人们欣喜若狂。你当然也不可置信。",
+          "但你没有对任何人说起——因为从小你就知道，这种莫名其妙的猜想绝对会被当成精神失常。",
+          "回来的，不是Dream。"
+        ], 1900);
+
+        renderChoices([
+          { label: '告诉自己，这只是多虑，多亲亲他的雀斑吧，一切都会好的。', action: () => option1Prologue() },
+          { label: '盯着他的后脑勺，试图找出破绽。', action: () => option2Prologue() }
+        ]);
+      }
+
+      async function option1Prologue() {
+        clearContent();
+        await displayParagraphs([
+          "你相信这只是因为久别重逢，导致从小就感官过载的你不适应，你伸出手，Dream顺从地揽过你的腰，你用手摸着他脸颊，落吻在他两腮上如巧克力碎般的雀斑上。一切都是那么熟稔，那么熨帖，但为何你的身体会一阵又一阵地难受？",
+          "\"唔，我喜欢这个。我想我应该回报这个吻，因为我之后还会需要的。\"",
+          "\"但当然要给亲我的人一点提示，在这个故事里，我既不是怪物，也不是反派，因为我没有自己的BGM。\""
+        ], 2000);
+        addNextChapterLink('进入第一章', runChapter1);
+      }
+
+      async function option2Prologue() {
+        clearContent();
+        await displayParagraphs([
+          "你加倍地审视他的后脑勺，感觉到了一丝不自然，为什么结痂下面似乎还毛茸茸的？当你隔了一下午再看时，似乎伤疤又是那么完美无缺。观察的时间久了，你发现似乎Dream也开始似笑非笑地看你。"
+        ], 2000);
+        await new Promise(r => setTimeout(r, 4000));
+        clearContent();
+        await displayParagraphs([
+          "\"嘿，你选了这个选项是吧。我们分开了这么久，你难道不打算亲亲我吗，这难道不算虐待吗？\"",
+          "\"但当然要给有胆量的人一点提示，在这个故事里，我既不是怪物，也不是反派，因为我没有自己的BGM。\""
+        ], 2000);
+        addNextChapterLink('进入第一章', runChapter1);
+      }
+
+      async function runChapter1() {
+        clearContent();
+        await showTitle('第一章 · 恶心', 3000);
+        await displayParagraphs([
+          "他回来了。Dream回来了。",
+          "你无数次这样对自己说，在清晨看他吃煎蛋的时候，在黄昏看他逗弄Patches和Floof的时候，在深夜他背对着你入睡的时候。",
+          "他的生活习惯没有变化。思考方式没有变化。行为举止没有变化。每天照常阻止两只宠物争吵，出现在你身边时乐此不疲地挑事，每晚折腾一番才肯入睡。你半夜醒来看着他的背影，摸索他后脑上的伤口。每当故作玩笑地端详他的时候，你总会察觉一丝奇怪的恶心感。",
+          "他的五官面庞没有一丝问题，却带着一股陌生的不匹配和畸形。",
+          "你也说不清究竟来自哪里。你甚至开始思考\"伪人\"到底是否存在于世。"
+        ], 1900);
+        renderChoices([
+          { label: '把这当作作家的职业病，强迫自己忽略。既然Dream喜欢亲，那就将就给他亲个够吧。', action: () => option1Ch1() },
+          { label: '在日记里记下所有不对劲的细节。或许有助于自己捋清纷杂的思绪。', action: () => option2Ch1() }
+        ]);
+      }
+
+      async function option1Ch1() {
+        clearContent();
+        await displayParagraphs([
+          "你从后面抱住正在切芹菜的Dream，把嘴唇强硬地贴在他的面颊上，估计巧克力碎要掉完了。Dream被吓了一跳，大声问你是不是有什么毛病，把你挤走了。而后他看上去像是想起了什么，端着菜走了出来。",
+          "\"我应不应该总惯着你呢？一，今天没有芝士。二，你今天没有吃医生开的药，techno。通常来讲，你应该做好准备。\""
+        ], 2000);
+        addNextChapterLink('进入第一夜', runFirstNight);
+      }
+
+      async function option2Ch1() {
+        clearContent();
+        await displayParagraphs([
+          "你拉开你的书桌抽屉，里面有skeppy送你的他的youtooz，如果你当时没有选择写作而是成为一位YouTuber的话，估计也能和他一样。但你并不后悔你的选择。人总不可能同时攀爬两座职业高峰。但或许就像你在自己的多元宇宙小说里写的那样，那些幸福啊让那个techno替你到达吧。",
+          "你继续翻找，在你藏东西惯用的抽屉与书桌夹缝里找到了一张纸条。",
+          "\"我当然知道Dream失踪这件事，Tommy帮了我点忙，但他去了哪里？我没法忍受我的行为造成的后果由他人承担，希望忒休斯回来的船上，船帆不会是黑的，这周围可没海给Phil跳。\""
+        ], 1900);
+
+        const linkSpan = document.createElement('span');
+        linkSpan.className = 'special-link';
+        linkSpan.innerText = '【忒休斯与黑帆】';
+        contentBlock.appendChild(linkSpan);
+        linkSpan.addEventListener('click', (e) => {
+          e.stopPropagation();
+          theseusModal.classList.remove('hidden');
+        });
+
+        const nextBtn = document.createElement('div');
+        nextBtn.className = 'next-chapter';
+        nextBtn.innerText = '进入第一夜';
+        nextBtn.addEventListener('click', runFirstNight);
+        contentBlock.appendChild(nextBtn);
+
+        storyView.scrollTop = storyView.scrollHeight;
+      }
+
+      async function runFirstNight() {
+        clearContent();
+        await showTitle('▸ 第一夜 · 窥视', 3000);
+        await displayParagraphs([
+          "更大的打击紧随其后。",
+          "当天晚上你早早关了台灯，把书放在床头柜上，陷入了浅眠。迷糊间你感觉到身边有人起床了。你忍着困意半眯着眼睛——看到Dream大睁着双眼，紧贴你的脸死死盯着你，似乎是在确认你是否已经入睡。",
+          "你默然继续半眯着，不敢让睫毛颤动。",
+          "在窗外隐约月光的照射下，你看到它咧嘴一笑。",
+          "然后它转过身，以一种扭曲的姿态爬走了。四肢并用，甩着手臂朝门外爬去——却不是匍匐在地面，而是用手掌和脚掌支撑起躯干。你的冷汗骤然滑落。你没有听到Patches跑来的脚步声，也没有听到Floof的哼鸣。以往无论是你还是Dream夜起，它们必然会精神抖擞地蹭主人的脚。今夜安静得吓人。",
+          "只有它用脚掌贴地爬走的声音，静谧而黏腻。",
+          "你侧耳听着，伸手打开眼镜戴上，从床头柜的暗格里摸出了撬棍。自从六个月前癔症越发严重，心理医生说这是作家们的职业病，你的情况格外特殊也可能因为你是少见的天才。但你说不清为什么床头柜里会藏着一根撬棍，而你的潜意识轻车熟路带你找到了它。",
+          "你捏紧撬棍，手心滑腻。",
+          "慢慢挪到门口观察着二楼走廊——空空如也。再用脚掌肉垫贴紧地板挪到窗边观察后院——它似乎正在后院的樱桃树下徘徊。",
+          "你松了一口气，紧握着撬棍离开卧室，开始下楼。",
+          "你已经无法再忍受每天和一个怪物共枕而眠。你也迫切想知道真正的Dream的下落。无论你玩笑的试探还是认真的侧击，Dream都能巧妙地躲过。现在你只需要一个现行。",
+          "从厨房玻璃门后望去，那个怪物站了起来，背对着你。你有些困惑，因为它的背影明显萎靡了，金发也长了不少，几乎到了肩膀。你全当是月光使然，让金棕色的深色头发看起来有几分像纯金。",
+          "当你潜行到它身后预备开口的时候——",
+          "那个身影摇晃了一下，面朝地软趴趴倒了下去。",
+          "你惊恐地后退一步看清了它——",
+          { text: "带着血污的金发紧贴着脸，下巴处有一圈金色的胡茬。它的胸腔上被贯穿了一根削得尖锐的撬棍。不知道什么脏器的碎片挂在上面，正在汩汩如水泵一样喷着小股血流。尸体还在不由自主地抽动，发出奇怪的音节，激动地叫喊着什么。", class: 'blood-red' }
+        ], 1800);
+
+        const shakeP = document.createElement('div');
+        shakeP.className = 'paragraph visible shake-text';
+        shakeP.innerText = "你慌乱间去看自己的手——想要看清那根撬棍是否还在时——后脖颈遭到了猛烈的重击。一阵头晕目眩后，你坠入了黑暗。";
+        contentBlock.appendChild(shakeP);
+        storyView.scrollTop = storyView.scrollHeight;
+        await new Promise(r => setTimeout(r, 2500));
+
+        renderChoices([
+          { label: '试图在昏迷中抓住任何一丝意识。', action: () => handleConsciousness() },
+          { label: '彻底失去意识，任由黑暗吞没。', action: () => option2Unconscious() }
+        ]);
+      }
+
+      async function handleConsciousness() {
+        clearContent();
+        await renderClickCircle(55,
+          async () => {
+            clearContent();
+            await displayParagraphs([
+              "一双黑底白勾的破迈克鞋踩住了你的手，用脚尖碾压了起来，疼痛使你的意志清明，你似乎在哪见过这双鞋.......但此刻只能寄托于你的记忆了，赶快回想起来吧！它似乎很不耐烦，Dream的尸体在你面前被缓慢拖行走了....."
+            ], 2000);
+            addNextChapterLink('进入第二章', runChapter2);
+          },
+          async () => {
+            clearContent();
+            await displayParagraphs(["Technoblade绝对会对你失望的！"], 1500);
+            addNextChapterLink('进入第二章', runChapter2);
+          }
+        );
+      }
+
+      async function option2Unconscious() {
+        clearContent();
+        await displayParagraphs(["睡吧，睡觉就很好，就让选另外一个选项的家伙们得腱鞘炎去吧。"], 1500);
+        addNextChapterLink('进入第二章', runChapter2);
+      }
+
+      async function runChapter2() {
+        clearContent();
+        await showTitle('第二章 · 花园', 3000);
+        await displayParagraphs([
+          "第二天早上你浑身酸痛地醒来。脑海里猛然浮现昨夜血腥的一幕，而你伸手摸到的东西更是让你差点惊呼出声——",
+          "Dream被你吵得睡眼惺忪，狠狠捏了一下你的后腰。你忍痛愣愣盯着他，拉开被子去摸索他的胸腔。对方显然被你的举动吓了一跳，但没有抗拒地顺你的动作解开了睡衣。",
+          "Dream的胸前赫然露出一个孔洞大小的伤疤。你伸手摸上去，那个疤痕周围有一圈深色的软肉，已经长好了。",
+          "Dream凑近了一些，覆手在你手上左移，将乳首凑了上来，意有所指地用膝盖摩挲着你的裆部。你才后知后觉——你的伴侣把你的行为当成了是在索要。\"Wait, wait, Dream!\"",
+          "你窘迫地瑟缩弯腰躲避，扯上睡衣帮他扣好扣子。Dream不解地拧眉，伸脚把你轻踢开，脱掉衣服起身开柜子开始换衣服。",
+          "你疲惫地伸手撩开头发，低低叹了一口气。",
+          "Dream套上毛衣后凑近，亲昵地用鼻子蹭了蹭你。你轻轻用手拍了拍他的脸。虽说平时你们没有固定的早安吻，从高中开始交往的时期起，亲热举动一般都是由Dream主动要求的。",
+          "你注意到他衣物的变换，尽量让自己显得自然：\"今天天线宝宝怎么没有穿上他亲手绘制的卫衣？你的品牌效应都要变成乐色了。\"",
+          "Dream低头看了看毛衣。\"毛衣画起来比较麻烦。如果某位辍学也不愿意考驾照的作家愿意走几公里替我送去裁缝店做个笑脸的话，我没有意见。\"",
+          "他伸手拿过眼镜展开，戴在你脸上，出了卧室门。\"我的卫衣送去洗了。人不可能总穿一件对吧？这又不是Minecraft皮肤。\"",
+          "你伸手摸了摸粘在镜片上、还未擦拭的血污。然后猛地打开了床头柜——里面空空荡荡的，什么都没有。"
+        ], 1900);
+
+        renderChoices([
+          { label: '认定了这一切只是幻觉，自己已经病得很重。', action: () => option1Ch2() },
+          { label: '坚信昨夜不是梦，撬棍和尸体一定还存在某处。', action: () => option2Ch2() }
+        ]);
+      }
+
+      async function option1Ch2() {
+        clearContent();
+        const typewriter = document.createElement('div');
+        typewriter.className = 'paragraph visible';
+        contentBlock.appendChild(typewriter);
+        const msg =
+          "\"哦，techno，哦，现在幡然悔悟已经为时已晚，笑死，我当然不会让死亡或者精神病院把我们分开！回去。\"";
+        for (let i = 0; i < msg.length; i++) {
+          typewriter.innerText += msg[i];
+          await new Promise(r => setTimeout(r, 60));
+        }
+        await new Promise(r => setTimeout(r, 800));
+        runChapter2();
+      }
+
+      async function option2Ch2() {
+        clearContent();
+        await displayParagraphs([
+          "Dream出门了，他承诺今天会带点雪球芝士玛格丽特披萨回来。没办法检查他的福特了，或许他会带走可疑的东西。你检索了电视房，卧室，地下室以及花园，除了花园的草皮有点乱以外都毫无异常。作为一个ADHD嫌犯而言，Dream还是比较优秀的。",
+          "又或者他什么都没有做。"
+        ], 1900);
+        addNextChapterLink('继续', runChapter3);
+      }
+
+      async function runChapter3() {
+        clearContent();
+        await displayParagraphs([
+          "你明白自己不应该害怕夜晚的到来。甚至说你其实从未真正害怕过什么。你一整天都在后院里找血迹和人体组织，却一无所获，连撬棍也不知所踪。你不愿意相信病症已经到了那种地步。昨晚难道只是个梦？",
+          "Dream已经安稳地在你身边睡下，发出一阵匀称的呼吸。唯一可以把你脱离思维漩涡的解决方法，就是去确认——到底真正的Dream还在不在。",
+          "你独自起身，披上大衣离开，挖开了后院樱桃树下的土堆——没了。那具尸体不翼而飞。",
+          "黑黝黝的夜里安静得像是方圆百里没有活物。月光惨白照射下，如骨制的房屋矗立在你身后。放眼望去一栋栋一模一样的房屋从远处蔓延至此——一样的惨白，一样黑黢黢充满窥探的窗户。",
+          "月光像是裹尸布一样扑洒在花园的草坪上。你跪坐在地上开始用手挖掘土堆，缓慢到不敢发出一点声响。你时不时抬头望向二楼漆黑的窗。然而松软肥沃的土被挖开，那个可憎的尸体并不在下面。颊汗滴落，脊背冷得发凉。",
+          "你极少品尝恐惧滋味，在那个黄昏你已经毛骨悚然过了。尸体死而复生，爬出了坟堆和你接吻，说了一句我回来了。而就在昨天，你再一次捅穿了他——Dream却阴魂不散地照例出现在你枕边。"
+        ], 1800);
+
+        await showTitle('第三章 · 兄弟', 3000);
+        await displayParagraphs(["▸ 第一次谋杀 · 几个月前",
+          "你从几个月前就发觉了。每每你半夜醒来，有只怪物每晚睡在你枕边。他是Dream，但又不是。Dream被某种东西替代了，他已经不再是Dream了——或者说，不再是人类。",
+          "空荡荡的街区平和宁静，别墅群间的隔音很好。于是在一个晚上，你拿着男友Dream高中时期的棒球棍，像是砸开派对上的糖果独角兽那样，狠狠砸开了它的脑袋。力道之大让棒球棍都为之折损。怪物Dream背对着你躺在地上，脑子里流出了红的血肉组织，白的液体和灰色的碎骨，流了一地。",
+          "你的小弟——Tommy——就坐在几米之外的客厅里，露出一个金色蓬松的脑袋。随着你的最后一声砸击，他关了正在放送巨大声响的电视节目。或许他在后悔没有早点告诉你的亲人们，你的精神病已经发展到了不可控的地步。",
+          "第二天他为了帮你脱罪，装作Dream的样子，往衣服里充填了一些可笑的漫画，然后鼓鼓囊囊地和你挥手告别，顺着Dream晨跑的小道离开了。然后他就失踪了。",
+          "因此Dream失踪的事情被压后延了一些时日被你告诉众人。你随后处理了怪物Dream尸体，用毯子裹起来，竖着埋进了后院的樱桃树下。"
+        ], 1800);
+
+        renderChoices([
+          { label: '发短信给Philza。', action: () => renderSMSInterface() }
+        ]);
+      }
+
+      function addNextChapterLink(text, nextFunc) {
+        const link = document.createElement('div');
+        link.className = 'next-chapter';
+        link.innerText = text;
+        link.addEventListener('click', nextFunc);
+        contentBlock.appendChild(link);
+        storyView.scrollTop = storyView.scrollHeight;
+      }
+
+      function showWarningOverlay() {
+        return new Promise(resolve => {
+          warningOverlay.classList.remove('hidden');
+          warningOverlay.style.opacity = '0';
+          requestAnimationFrame(() => {
+            warningOverlay.style.opacity = '1';
+          });
+
+          const lines = [
+            document.getElementById('warningLine1'),
+            document.getElementById('warningLine2'),
+            document.getElementById('warningLine3'),
+            document.getElementById('warningLine4')
+          ];
+
+          lines.forEach((line, index) => {
+            setTimeout(() => {
+              line.style.opacity = '1';
+            }, 500 + index * 500);
+          });
+
+          const continueBtn = document.getElementById('continueBtn');
+          setTimeout(() => {
+            continueBtn.style.opacity = '1';
+            continueBtn.style.pointerEvents = 'auto';
+            continueBtn.addEventListener('click', () => {
+              warningOverlay.style.opacity = '0';
+              warningOverlay.style.pointerEvents = 'none';
+              setTimeout(() => {
+                warningOverlay.classList.add('hidden');
+                warningOverlay.style.pointerEvents = 'none';
+                resolve();
+              }, 500);
+            }, { once: true });
+          }, 3000);
+        });
+      }
+
+      document.getElementById('startGameBtn').addEventListener('click', async () => {
+        ageModal.classList.add('hidden');
+        await showWarningOverlay();
+        runPrologue();
+      });
+      document.getElementById('closeTheseus').addEventListener('click', () => {
+        theseusModal.classList.add('hidden');
+      });
+      document.getElementById('closeAnalysis').addEventListener('click', () => {
+        analysisModal.classList.add('hidden');
+      });
+
+      ageModal.classList.remove('hidden');
+    })();
+  </script>
+</body>
+</html>
